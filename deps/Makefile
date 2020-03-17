@@ -1,4 +1,6 @@
 
+ifdef DEPSDIR
+
 WSDIR := $(DEPSDIR)/libwebsockets
 
 .PHONY: websockets install
@@ -9,15 +11,17 @@ websockets:
 	cd $(WSDIR) \
 	&& mkdir -p build \
 	&& cd build \
-	&& cmake .. \
+	&& cmake .. -DLWS_WITH_SSL=0 \
 	&& make
 
 install: websockets
 	mkdir -p $(DEPSDIR)/include
 	mkdir -p $(DEPSDIR)/lib
-	cp -rf $(DEPSDIR)/libwebsockets/build/include/* $(CUR_MAKEFILE_DIR)/include
-	cp -rf $(DEPSDIR)/libwebsockets/build/lib/* $(CUR_MAKEFILE_DIR)/lib
+	cp -rf $(WSDIR)/build/include/* $(DEPSDIR)/include
+	cp -rf $(WSDIR)/build/lib/* $(DEPSDIR)/lib
 
 distclean:
-	@rm -rf $(DEPSDIR)/include
-	@rm -rf $(DEPSDIR)/lib
+	rm -rf $(DEPSDIR)/include
+	rm -rf $(DEPSDIR)/lib
+
+endif
