@@ -11,7 +11,8 @@ websockets:
 	cd $(WSDIR) \
 	&& mkdir -p build \
 	&& cd build \
-	&& cmake .. -DLWS_WITH_SSL=0 \
+	&& cmake .. -DLWS_WITH_HTTP2=1 \
+	-DLWS_WITH_SSL=0 \
 	&& make
 
 install: websockets
@@ -23,5 +24,6 @@ install: websockets
 distclean:
 	rm -rf $(DEPSDIR)/include
 	rm -rf $(DEPSDIR)/lib
+	rm -rf $(WSDIR)/build
 
 endif

@@ -22,8 +22,7 @@ $(S_TARGET):
 	$(CC) websocket_server.c -o $@ $(CFLAG) $(LDFLAG)
 
 clean:
-	rm -r $(S_TARGET) $(C_TARGET)
+	rm -rf $(S_TARGET) $(C_TARGET)
 
 distclean:
 	$(MAKE) -C $(DEPSDIR) distclean
-	rm -r $(S_TARGET) $(C_TARGET)

@@ -23,7 +23,13 @@ callback_websocket_server(struct lws *wsi, enum lws_callback_reasons reason,
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
 		lwsl_user("LWS_CALLBACK_SERVER_WRITEABLE\n");
-		lws_write(wsi, data, strlen(data), LWS_WRITE_TEXT);
+		lwsl_user("-----------WRITEABLE %d \n", (int)strlen(data));
+		int data_len = strlen(data);
+		char *reply_data = malloc(data_len + LWS_PRE + 1);
+		memset(reply_data, 0, data_len + LWS_PRE + 1);
+		memcpy(reply_data + LWS_PRE, data, data_len);
+		lws_write(wsi, reply_data + LWS_PRE, data_len, LWS_WRITE_TEXT);
+		free(reply_data);
 		// 下面的调用允许在此连接上接收数据
 		lws_rx_flow_control(wsi, 1);
 		break;
@@ -38,7 +44,7 @@ callback_websocket_server(struct lws *wsi, enum lws_callback_reasons reason,
 		// 下面的调用禁止在此连接上接收数据
 		lws_rx_flow_control(wsi, 0);
 		memset(data, 0, sizeof(data));
-		memcpy(data, in, len);
+		memcpy(&data, in, len);
 		lwsl_warn("recvied message:%s\n", data);
 		// 需要给客户端应答时，触发一次写回调
 		lws_callback_on_writable(wsi);
@@ -83,7 +89,7 @@ int main(int argc, const char **argv)
 			 * lws must have been configured and built with
 			 * -DCMAKE_BUILD_TYPE=DEBUG instead of =RELEASE */
 		/* | LLL_INFO */ /* | LLL_PARSER */ /* | LLL_HEADER */
-		/* | LLL_EXT */ /* | LLL_CLIENT */  /* | LLL_LATENCY */
+		/* | LLL_EXT */ /* | LLL_CLIENT */	/* | LLL_LATENCY */
 		/* | LLL_DEBUG */;
 
 	signal(SIGINT, sigint_handler);

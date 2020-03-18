@@ -12,7 +12,7 @@ static char address[] = "127.0.0.1";
 static int client_established = 0;
 struct lws *lws = NULL;
 
-static char send_data[] = "SEND DATA ";
+static char *fmt = "{\"message\":\"data\",\"count\":%d}";
 static int n = 0;
 
 static void *lws_write_pthread(void *arg)
@@ -24,7 +24,7 @@ static void *lws_write_pthread(void *arg)
             lwsl_user("-------send\n");
             lws_callback_on_writable(lws);
         }
-        sleep(5);
+        usleep(10);
     }
 }
 
@@ -49,9 +49,14 @@ callback_websocket_client(struct lws *wsi, enum lws_callback_reasons reason,
     case LWS_CALLBACK_CLIENT_WRITEABLE:
         lwsl_user("LWS_CALLBACK_CLIENT_WRITEABLE\n");
         // 通过WebSocket发送文本消息
-        char write_data[256] = {0};
-        sprintf(write_data, "%s:%d", send_data, n);
-        lws_write(lws, write_data, strlen(write_data), LWS_WRITE_TEXT);
+        char send_data[256] = {0};
+        sprintf(send_data, fmt, n);
+        int send_data_len = strlen(send_data);
+        char *write_data = malloc(send_data_len + LWS_PRE + 1);
+        memset(write_data, 0, send_data_len + LWS_PRE + 1);
+        memcpy(write_data + LWS_PRE, send_data, send_data_len);
+        lws_write(lws, write_data + LWS_PRE, send_data_len, LWS_WRITE_TEXT);
+        free(write_data);
         n++;
         break;
 
@@ -61,9 +66,7 @@ callback_websocket_client(struct lws *wsi, enum lws_callback_reasons reason,
                   lws_is_first_fragment(wsi),
                   lws_is_final_fragment(wsi),
                   lws_frame_is_binary(wsi));
-        char data[128] = {0};
-        memcpy(data, in, len);
-        lwsl_warn("recvied message:%s\n", data);
+        lwsl_warn("recvied message:%s\n", (char *)in);
         break;
 
     case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
